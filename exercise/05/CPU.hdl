@@ -40,28 +40,28 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
-    Not(in=instruction[15],out=isA);
-    Not(in=isA,out=isC);
-    And(a=isC,b=instruction[5],out=ALUtoA);
-    Mux16(a=instruction,b=ALUout,sel=isC,out=a0);
-    Or(a=isA,b=ALUtoA,out=Aload);
+    Not(in=instruction[15],out=isA);//判定是不是A指令
+    Not(in=isA,out=isC);//判定是不是C指令
+    And(a=isC,b=instruction[5],out=ALUtoA);//控制A暫存
+    Mux16(a=instruction,b=ALUout,sel=isC,out=a0);//選擇A暫存的輸入
+    Or(a=isA,b=ALUtoA,out=Aload);//A指令或ALU輸出進到A暫存
     ARegister(in=a0,load=Aload,out=Aout);
-    And(a=isC,b=instruction[4],out=Dload);
-    DRegister(in=ALUout,load=Dload,out=Dout);
-    Mux16(a=Aout,b=inM,sel=instruction[12],out=AorM);
+    And(a=isC,b=instruction[4],out=Dload);//控制D暫存
+    DRegister(in=ALUout,load=Dload,out=Dout);//Dloda控制ALUout的暫存
+    Mux16(a=Aout,b=inM,sel=instruction[12],out=AorM);//選擇ALU的輸入為A暫存或記憶體
     ALU(x=Dout,y=AorM,zx=instruction[11],nx=instruction[10],zy=instruction[9],
-        ny=instruction[8],f=instruction[7],no=instruction[6],out=ALUout,zr=zr,ng=ng);
-    Or16(a=ALUout,b=false,out=outM);
-    Or16(a=Aout,b=false,out[0..14]=addressM);
-    And(a=isC,b=instruction[3],out=writeM);
-    And(a=zr,b=instruction[1],out=JEQ);
-    And(a=ng,b=instruction[2],out=JLT);
-    Or(a=zr,b=ng,out=zrorng);
-    Not(in=zrorng,out=N);
-    And(a=N,b=instruction[0],out=JGT);
-    Or(a=JEQ,b=JLT,out=JEQorJLT);
-    Or(a=JEQorJLT,b=JGT,out=JUMP);
-    And(a=isC,b=JUMP,out=PCload);
-    Not(in=PCload,out=PCinc);
-    PC(in=Aout,inc=PCinc,load=PCload,reset=reset,out[0..14]=pc);
+        ny=instruction[8],f=instruction[7],no=instruction[6],out=ALUout,zr=zr,ng=ng);//instruction[6...11]控制運算
+    Or16(a=ALUout,b=false,out=outM);//把ALUout放進記憶體
+    Or16(a=Aout,b=false,out[0..14]=addressM);//把A暫存的輸出寫入記憶體
+    And(a=isC,b=instruction[3],out=writeM);//若為C指令則寫入記憶體
+    And(a=zr,b=instruction[1],out=JEQ);//若輸出為0且控制jmp的instruction[1]為1，跳躍指令為JEQ(X = 0)
+    And(a=ng,b=instruction[2],out=JLT);//若輸出小於0且控制jmp的instruction[2]為1，跳躍指令為JLT(X < 0)
+    Or(a=zr,b=ng,out=zrorng);//輸出小於或等於零
+    Not(in=zrorng,out=N);//輸出是否為正數
+    And(a=N,b=instruction[0],out=JGT);//若輸出為正且控制jmp的instruction[0]為1，跳躍指令為JGT(X > 0)
+    Or(a=JEQ,b=JLT,out=JLE);//若輸出小於或等於0則跳躍指令為JLE(X <= 0)
+    Or(a=JLE,b=JGT,out=JMP);//若輸出小於等於或大於0，則跳躍指令為JMP
+    And(a=isC,b=JUMP,out=PCload);//若為C指令，並且有JMP指令時，PC載入
+    Not(in=PCload,out=PCinc);//PC非載入時則+1
+    PC(in=Aout,inc=PCinc,load=PCload,reset=reset,out[0..14]=pc);//以inc/load/reset處理A暫存的輸出
 }
