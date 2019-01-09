@@ -43,22 +43,19 @@ CHIP ALU {
 
     PARTS:
    // Put you code here:
-    Mux16(a=x,b=false,sel=zx,out=x1);
-    Not16(in=x1,out=notx1);
-    Mux16(a=x1,b=notx1,sel=nx,out=x2);
-    Mux16(a=y,b=false,sel=zy,out=y1);
-    Not16(in=y1,out=noty1);
-    Mux16(a=y1,b=noty1,sel=ny,out=y2);
-    Add16(a=x2,b=y2,out=add);
-    And16(a=x2,b=y2,out=and);
-    Mux16(a=and,b=add,sel=f,out=out1);
-    Not16(in=out1,out=notout1);
-    Mux16(a=out1,b=notout1,sel=no,out=out2);
-    And16(a=out2,b=out2,out[0..7]=outlow,out[8..15]=outhigh);
-    Or8Way(in=outlow,out=orlow);
-    Or8Way(in=outhigh,out=orhigh);
-    Or(a=orlow,b=orhigh,out=notzr);
-    Not(in=notzr,out=zr);
-    And16(a=out2,b=out2,out[15]=ng);
-    Or16(a=out2,b=false,out=out);
+    Mux16(a=x,b=false,sel=zx,out=zerox);                   //zx,zero the x input?
+    Not16(in=zerox,out=notx);                              //nx,negate the x input?
+    Mux16(a=zerox,b=notx,sel=nx,out=selx);                 //選擇 x 和 notx
+    Mux16(a=y,b=false,sel=zy,out=zeroy);                   //zy,zero the y input?
+    Not16(in=zeroy,out=noty)                               //ny,negate the y input?
+    Mux16(a=zeroy,b=noty,sel=ny,out=sely);                 //選擇 y 和 noty
+    Add16(a=selx,b=sely,out=add);                          //x+y
+    And16(a=selx,b=sely,out=and);                          //x&y
+    Mux16(a=and,b=add,sel=f,out=andoradd);                 //選擇and和add
+    Not16(in=andoradd,out=notandoradd);                    //andoradd or not
+    Mux16(a=andoradd,b=notandoradd,sel=no,out=output);     //選擇 andoradd 和 notandoradd
+    Or16Way(in=output,out=oroutput);                       //zr, // 1 if (out == 0), 0 otherwise
+    Not(in=oroutout,out=zr);
+    And16(a=ture,b=output,out[15]=ng);                     //ng; // 1 if (out < 0),  0 otherwise
+    Or16(a=output,b=false,out=out);                  
 }
