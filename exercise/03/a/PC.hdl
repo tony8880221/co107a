@@ -17,12 +17,12 @@ CHIP PC {
 
     PARTS:
     // Put your code here:
-    Inc16(in=tempout,out=plusone);
-    Mux16(a=tempout,b=plusone,sel=inc,out=incout);
-    Mux16(a=incout,b=in,sel=load,out=jumpout);
-    Mux16(a=jumpout,b=false,sel=reset,out=resetout);
-    Or(a=load, b=reset, out=loadorreset);
-    Or(a=loadorreset, b=inc, out=work);
-    Register(in=resetout,load=work,out=tempout);
-    And16(a=tempout,b=tempout,out=out);
+    Inc16(in=tempout,out=plusone);//[t]++
+    Mux16(a=tempout,b=plusone,sel=inc,out=incout);//if (inc[t] == 1)   out[t+1] = out[t] + 1  (integer addition)
+    Mux16(a=incout,b=in,sel=load,out=jumpout);//if (load[t] == 1)  out[t+1] = in[t]
+    Mux16(a=jumpout,b=false,sel=reset,out=resetout);//if      (reset[t] == 1) out[t+1] = 0
+    Or(a=inc, b=load, out=incorload);//++或保持
+    Or(a=incorload, b=reset, out=work);//是否歸零
+    Register(in=resetout,load=work,out=tempout);//選擇要幹嘛
+    Or16(a=tempout,b=tempout,out=out);//輸出
 }
